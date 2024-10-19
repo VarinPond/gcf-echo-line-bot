@@ -343,11 +343,11 @@ def handle_text_message(event):
             )
         elif text == 'image_carousel':
             image_carousel_template = ImageCarouselTemplate(columns=[
-                ImageCarouselColumn(image_url='https://via.placeholder.com/1024x1024',
+                ImageCarouselColumn(image_url='https://developers-resource.landpress.line.me/fx/clip/clip1.jpg',
                                     action=DatetimePickerAction(label='datetime',
                                                                 data='datetime_postback',
                                                                 mode='datetime')),
-                ImageCarouselColumn(image_url='https://via.placeholder.com/1024x1024',
+                ImageCarouselColumn(image_url='https://developers-resource.landpress.line.me/fx/clip/clip2.jpg',
                                     action=DatetimePickerAction(label='date',
                                                                 data='date_postback',
                                                                 mode='date'))
@@ -360,13 +360,12 @@ def handle_text_message(event):
                     messages=[template_message]
                 )
             )
-        elif text == 'imagemap':
-            pass
         elif text == 'flex':
+            start_icon_url = "https://developers-resource.landpress.line.me/fx/img/review_gold_star_28.png"
             bubble = FlexBubble(
                 direction='ltr',
                 hero=FlexImage(
-                    url='https://example.com/cafe.jpg',
+                    url='https://developers-resource.landpress.line.me/fx/img/01_1_cafe.png',
                     size='full',
                     aspect_ratio='20:13',
                     aspect_mode='cover',
@@ -382,11 +381,11 @@ def handle_text_message(event):
                             layout='baseline',
                             margin='md',
                             contents=[
-                                FlexIcon(size='sm', url='https://example.com/gold_star.png'),
-                                FlexIcon(size='sm', url='https://example.com/grey_star.png'),
-                                FlexIcon(size='sm', url='https://example.com/gold_star.png'),
-                                FlexIcon(size='sm', url='https://example.com/gold_star.png'),
-                                FlexIcon(size='sm', url='https://example.com/grey_star.png'),
+                                FlexIcon(size='sm', url=start_icon_url),
+                                FlexIcon(size='sm', url=start_icon_url),
+                                FlexIcon(size='sm', url=start_icon_url),
+                                FlexIcon(size='sm', url=start_icon_url),
+                                FlexIcon(size='sm', url=start_icon_url),
                                 FlexText(text='4.0', size='sm', color='#999999', margin='md', flex=0)
                             ]
                         ),
@@ -466,131 +465,9 @@ def handle_text_message(event):
                 )
             )
         elif text == 'flex_update_1':
-            bubble_string = """
-            {
-            "type": "bubble",
-            "body": {
-                "type": "box",
-                "layout": "vertical",
-                "contents": [
-                {
-                    "type": "image",
-                    "url": "https://scdn.line-apps.com/n/channel_devcenter/img/flexsnapshot/clip/clip3.jpg",
-                    "position": "relative",
-                    "size": "full",
-                    "aspectMode": "cover",
-                    "aspectRatio": "1:1",
-                    "gravity": "center"
-                },
-                {
-                    "type": "box",
-                    "layout": "horizontal",
-                    "contents": [
-                    {
-                        "type": "box",
-                        "layout": "vertical",
-                        "contents": [
-                        {
-                            "type": "text",
-                            "text": "Brown Hotel",
-                            "weight": "bold",
-                            "size": "xl",
-                            "color": "#ffffff"
-                        },
-                        {
-                            "type": "box",
-                            "layout": "baseline",
-                            "margin": "md",
-                            "contents": [
-                            {
-                                "type": "icon",
-                                "size": "sm",
-                                "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
-                            },
-                            {
-                                "type": "icon",
-                                "size": "sm",
-                                "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
-                            },
-                            {
-                                "type": "icon",
-                                "size": "sm",
-                                "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
-                            },
-                            {
-                                "type": "icon",
-                                "size": "sm",
-                                "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png"
-                            },
-                            {
-                                "type": "icon",
-                                "size": "sm",
-                                "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gray_star_28.png"
-                            },
-                            {
-                                "type": "text",
-                                "text": "4.0",
-                                "size": "sm",
-                                "color": "#d6d6d6",
-                                "margin": "md",
-                                "flex": 0
-                            }
-                            ]
-                        }
-                        ]
-                    },
-                    {
-                        "type": "box",
-                        "layout": "vertical",
-                        "contents": [
-                        {
-                            "type": "text",
-                            "text": "¥62,000",
-                            "color": "#a9a9a9",
-                            "decoration": "line-through",
-                            "align": "end"
-                        },
-                        {
-                            "type": "text",
-                            "text": "¥42,000",
-                            "color": "#ebebeb",
-                            "size": "xl",
-                            "align": "end"
-                        }
-                        ]
-                    }
-                    ],
-                    "position": "absolute",
-                    "offsetBottom": "0px",
-                    "offsetStart": "0px",
-                    "offsetEnd": "0px",
-                    "backgroundColor": "#00000099",
-                    "paddingAll": "20px"
-                },
-                {
-                    "type": "box",
-                    "layout": "vertical",
-                    "contents": [
-                    {
-                        "type": "text",
-                        "text": "SALE",
-                        "color": "#ffffff"
-                    }
-                    ],
-                    "position": "absolute",
-                    "backgroundColor": "#ff2600",
-                    "cornerRadius": "20px",
-                    "paddingAll": "5px",
-                    "offsetTop": "10px",
-                    "offsetEnd": "10px",
-                    "paddingStart": "10px",
-                    "paddingEnd": "10px"
-                }
-                ],
-                "paddingAll": "0px"
-            }
-            }
-            """
+            with open('flex_msgs/flex_update.json') as bubble_json:           
+                    bubble_string = bubble_json.read()
+
             message = FlexMessage(alt_text="hello", contents=FlexContainer.from_json(bubble_string))
             line_bot_api.reply_message(
                 ReplyMessageRequest(
