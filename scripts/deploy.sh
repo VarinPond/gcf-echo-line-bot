@@ -10,6 +10,6 @@ gcloud functions deploy $FUNCTION_NAME \
     --region=asia-southeast1 \
     --runtime=python312 \
     --source=. \
-    --entry-point=callback \
+    --entry-point=$ENTRY_POINT \
     --allow-unauthenticated \
     --env-vars-file=scripts/line_secret.yml

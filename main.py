@@ -36,6 +36,9 @@ from linebot.v3.webhooks import (
     MemberJoinedEvent,
     MemberLeftEvent,
 )
+
+
+
 from linebot.v3.messaging import (
     Configuration,
     ApiClient,
@@ -77,7 +80,8 @@ from linebot.v3.messaging import (
     CameraRollAction,
     LocationAction,
     ErrorResponse,
-    ShowLoadingAnimationRequest
+    ShowLoadingAnimationRequest,
+    
 )
 
 from linebot.v3.insight import (
@@ -96,6 +100,9 @@ configuration = Configuration(
 )
 handler = WebhookHandler(YOUR_CHANNEL_SECRET)
 
+# Initialize the Messaging API client once
+with ApiClient(configuration) as api_client:
+    line_bot_api = MessagingApi(api_client)
 
 @functions_framework.http
 def callback(request):
@@ -118,490 +125,487 @@ def callback(request):
 
 
 
-@handler.add(MessageEvent, message=ImageMessageContent)
-def handle_image_message(event):
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message_with_http_info(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=event.type)],
-            )
-        )
-
 @handler.add(MessageEvent, message=LocationMessageContent)
 def handle_location_message(event):
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.show_loading_animation_with_http_info(
-            ShowLoadingAnimationRequest(
-                chat_id=event.source.user_id
-            )
-            
+    line_bot_api.show_loading_animation_with_http_info(
+        ShowLoadingAnimationRequest(
+            chat_id=event.source.user_id
         )
-        line_bot_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[LocationMessage(
-                    title='Location',
-                    address=event.message.address,
-                    latitude=event.message.latitude,
-                    longitude=event.message.longitude
-                )]
-            )
+        
+    )
+    line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[LocationMessage(
+                title='Location',
+                address=event.message.address,
+                latitude=event.message.latitude,
+                longitude=event.message.longitude
+            )]
         )
+    )
 
 
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_text_message(event):
-    text = event.message.text
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        if text == 'profile':
-            if isinstance(event.source, UserSource):
-                profile = line_bot_api.get_profile(user_id=event.source.user_id)
-                
-                with open('flex_msgs/profile_bubble.json') as profile_bubble_json:
-                    profile_bubble = profile_bubble_json.read()
-                    profile_bubble = profile_bubble.replace("USER_PROFILE_URL", profile.picture_url)\
-                        .replace("LINE_USER_NAME", profile.display_name)\
-                        .replace("LINE_USER_STATUS", profile.status_message)
-                    flex_profile_message = FlexMessage(alt_text="my_profile_bubble", contents=FlexContainer.from_json(profile_bubble))
-                    line_bot_api.reply_message(
-                        ReplyMessageRequest(
-                            reply_token=event.reply_token,
-                            messages=[
-                                TextMessage(text='Profile JSON: ' + profile.to_str()),
-                                flex_profile_message
-                            ]
-                        )
-                    )
+    line_bot_api.show_loading_animation_with_http_info(
+        ShowLoadingAnimationRequest(
+            chat_id=event.source.user_id
+        )
+    )
     
-            else:
-                line_bot_api.reply_message(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[TextMessage(text="Bot can't use profile API without user ID")]
-                    )
-                )
-        elif text == 'emojis':
-            emojis = [Emoji(index=0, product_id="5ac1bfd5040ab15980c9b435", emoji_id="001"),
-                      Emoji(index=13, product_id="5ac1bfd5040ab15980c9b435", emoji_id="002")]
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text='$ LINE emoji $', emojis=emojis)]
-                )
-            )
-        elif text == 'quota':
-            quota = line_bot_api.get_message_quota()
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[
-                        TextMessage(text='type: ' + quota.type),
-                        TextMessage(text='value: ' + str(quota.value))
-                    ]
-                )
-            )
-        elif text == 'quota_consumption':
-            quota_consumption = line_bot_api.get_message_quota_consumption()
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[
-                        TextMessage(text='total usage: ' + str(quota_consumption.total_usage))
-                    ]
-                )
-            )
-        elif text == 'push':
-            line_bot_api.push_message(
-                PushMessageRequest(
-                    to=event.source.user_id,
-                    messages=[TextMessage(text='PUSH!')]
-                )
-            )
-        elif text == 'multicast':
-            line_bot_api.multicast(
-                MulticastRequest(
-                    to=[event.source.user_id],
-                    messages=[TextMessage(text="THIS IS A MULTICAST MESSAGE, but it's slower than PUSH.")]
-                )
-            )
-        elif text == 'broadcast':
-            line_bot_api.broadcast(
-                BroadcastRequest(
-                    messages=[TextMessage(text='THIS IS A BROADCAST MESSAGE')]
-                )
-            )
-        elif text.startswith('broadcast '):  # broadcast 20190505
-            date = text.split(' ')[1]
-            logger.info("Getting broadcast result: " + date)
-            result = line_bot_api.get_number_of_sent_broadcast_messages(var_date=date)
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[
-                        TextMessage(text='Number of sent broadcast messages: ' + date),
-                        TextMessage(text='status: ' + str(result.status)),
-                        TextMessage(text='success: ' + str(result.success)),
-                    ]
-                )
-            )
-        elif text == 'bye':
-            if isinstance(event.source, GroupSource):
-                line_bot_api.reply_message(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[TextMessage(text="Leaving group")]
-                    )
-                )
-                line_bot_api.leave_group(event.source.group_id)
-            elif isinstance(event.source, RoomSource):
-                line_bot_api.reply_message(
-                    ReplyMessageRequest(
-                        reply_token=event.reply_token,
-                        messages=[TextMessage(text="Leaving room")]
-                    )
-                )
-                line_bot_api.leave_room(room_id=event.source.room_id)
-            else:
+    text = event.message.text
+    
+    if text == 'profile':
+        if isinstance(event.source, UserSource):
+            profile = line_bot_api.get_profile(user_id=event.source.user_id)
+            
+            with open('flex_msgs/profile_bubble.json') as profile_bubble_json:
+                profile_bubble = profile_bubble_json.read()
+                profile_bubble = profile_bubble.replace("USER_PROFILE_URL", profile.picture_url)\
+                    .replace("LINE_USER_NAME", profile.display_name)\
+                    .replace("LINE_USER_STATUS", profile.status_message)
+                flex_profile_message = FlexMessage(alt_text="my_profile_bubble", contents=FlexContainer.from_json(profile_bubble))
                 line_bot_api.reply_message(
                     ReplyMessageRequest(
                         reply_token=event.reply_token,
                         messages=[
-                            TextMessage(text="Bot can't leave from 1:1 chat")
+                            TextMessage(text='Profile JSON: ' + profile.to_str()),
+                            flex_profile_message
                         ]
                     )
                 )
-        elif text == 'confirm':
-            confirm_template = ConfirmTemplate(
-                text='Do it?',
-                actions=[
-                    MessageAction(label='Yes', text='Yes!'),
-                    MessageAction(label='No', text='No!')
-                ]
-            )
-            template_message = TemplateMessage(
-                alt_text='Confirm alt text',
-                template=confirm_template
-            )
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[template_message]
-                )
-            )
-        elif text == 'buttons':
-            buttons_template = ButtonsTemplate(
-                title='My buttons sample',
-                text='Hello, my buttons',
-                actions=[
-                    URIAction(label='Go to line.me', uri='https://line.me'),
-                    PostbackAction(label='ping', data='ping'),
-                    PostbackAction(label='ping with text', data='ping', text='ping'),
-                    MessageAction(label='Translate Rice', text='米')
-                ])
-            template_message = TemplateMessage(
-                alt_text='Buttons alt text',
-                template=buttons_template
-            )
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[template_message]
-                )
-            )
-        elif text == 'carousel':
-            carousel_template = CarouselTemplate(
-                columns=[
-                    CarouselColumn(
-                        text='hoge1',
-                        title='fuga1',
-                        actions=[
-                            URIAction(label='Go to line.me', uri='https://line.me'),
-                            PostbackAction(label='ping', data='ping')
-                        ]
-                    ),
-                    CarouselColumn(
-                        text='hoge2',
-                        title='fuga2',
-                        actions=[
-                            PostbackAction(label='ping with text', data='ping', text='ping'),
-                            MessageAction(label='Translate Rice', text='米')
-                        ]
-                    )
-                ]
-            )
-            template_message = TemplateMessage(
-                alt_text='Carousel alt text', template=carousel_template)
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[template_message]
-                )
-            )
-        elif text == 'image_carousel':
-            image_carousel_template = ImageCarouselTemplate(columns=[
-                ImageCarouselColumn(image_url='https://developers-resource.landpress.line.me/fx/clip/clip1.jpg',
-                                    action=DatetimePickerAction(label='datetime',
-                                                                data='datetime_postback',
-                                                                mode='datetime')),
-                ImageCarouselColumn(image_url='https://developers-resource.landpress.line.me/fx/clip/clip2.jpg',
-                                    action=DatetimePickerAction(label='date',
-                                                                data='date_postback',
-                                                                mode='date'))
-            ])
-            template_message = TemplateMessage(
-                alt_text='ImageCarousel alt text', template=image_carousel_template)
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[template_message]
-                )
-            )
-        elif text == 'flex':
-            start_icon_url = "https://developers-resource.landpress.line.me/fx/img/review_gold_star_28.png"
-            bubble = FlexBubble(
-                direction='ltr',
-                hero=FlexImage(
-                    url='https://developers-resource.landpress.line.me/fx/img/01_1_cafe.png',
-                    size='full',
-                    aspect_ratio='20:13',
-                    aspect_mode='cover',
-                    action=URIAction(uri='http://example.com', label='label')
-                ),
-                body=FlexBox(
-                    layout='vertical',
-                    contents=[
-                        # title
-                        FlexText(text='Brown Cafe', weight='bold', size='xl'),
-                        # review
-                        FlexBox(
-                            layout='baseline',
-                            margin='md',
-                            contents=[
-                                FlexIcon(size='sm', url=start_icon_url),
-                                FlexIcon(size='sm', url=start_icon_url),
-                                FlexIcon(size='sm', url=start_icon_url),
-                                FlexIcon(size='sm', url=start_icon_url),
-                                FlexIcon(size='sm', url=start_icon_url),
-                                FlexText(text='4.0', size='sm', color='#999999', margin='md', flex=0)
-                            ]
-                        ),
-                        # info
-                        FlexBox(
-                            layout='vertical',
-                            margin='lg',
-                            spacing='sm',
-                            contents=[
-                                FlexBox(
-                                    layout='baseline',
-                                    spacing='sm',
-                                    contents=[
-                                        FlexText(
-                                            text='Place',
-                                            color='#aaaaaa',
-                                            size='sm',
-                                            flex=1
-                                        ),
-                                        FlexText(
-                                            text='Shinjuku, Tokyo',
-                                            wrap=True,
-                                            color='#666666',
-                                            size='sm',
-                                            flex=5
-                                        )
-                                    ],
-                                ),
-                                FlexBox(
-                                    layout='baseline',
-                                    spacing='sm',
-                                    contents=[
-                                        FlexText(
-                                            text='Time',
-                                            color='#aaaaaa',
-                                            size='sm',
-                                            flex=1
-                                        ),
-                                        FlexText(
-                                            text="10:00 - 23:00",
-                                            wrap=True,
-                                            color='#666666',
-                                            size='sm',
-                                            flex=5,
-                                        ),
-                                    ],
-                                ),
-                            ],
-                        )
-                    ],
-                ),
-                footer=FlexBox(
-                    layout='vertical',
-                    spacing='sm',
-                    contents=[
-                        # callAction
-                        FlexButton(
-                            style='link',
-                            height='sm',
-                            action=URIAction(label='CALL', uri='tel:000000'),
-                        ),
-                        # separator
-                        FlexSeparator(),
-                        # websiteAction
-                        FlexButton(
-                            style='link',
-                            height='sm',
-                            action=URIAction(label='WEBSITE', uri="https://example.com")
-                        )
-                    ]
-                ),
-            )
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[FlexMessage(alt_text="hello", contents=bubble)]
-                )
-            )
-        elif text == 'flex_update_1':
-            with open('flex_msgs/flex_update.json') as bubble_json:           
-                    bubble_string = bubble_json.read()
-
-            message = FlexMessage(alt_text="hello", contents=FlexContainer.from_json(bubble_string))
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[message]
-                )
-            )
-        elif text == 'quick_reply':
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(
-                        text='Quick reply',
-                        quick_reply=QuickReply(
-                            items=[
-                                QuickReplyItem(
-                                    action=PostbackAction(label="label1", data="data1")
-                                ),
-                                QuickReplyItem(
-                                    action=MessageAction(label="label2", text="text2")
-                                ),
-                                QuickReplyItem(
-                                    action=DatetimePickerAction(label="label3",
-                                                                data="data3",
-                                                                mode="date")
-                                ),
-                                QuickReplyItem(
-                                    action=CameraAction(label="label4")
-                                ),
-                                QuickReplyItem(
-                                    action=CameraRollAction(label="label5")
-                                ),
-                                QuickReplyItem(
-                                    action=LocationAction(label="label6")
-                                ),
-                            ]
-                        )
-                    )]
-                )
-            )
-        elif text == 'link_token' and isinstance(event.source, UserSource):
-            link_token_response = line_bot_api.issue_link_token(user_id=event.source.user_id)
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text='link_token: ' + link_token_response.link_token)]
-                )
-            )
-        elif text == 'insight_message_delivery':
-            with InsightClient(configuration) as api_client:
-                line_bot_insight_api = Insight(api_client)
-                today = datetime.date.today().strftime("%Y%m%d")
-                response = line_bot_insight_api.get_number_of_message_deliveries(var_date=today)
-                if response.status == 'ready':
-                    messages = [
-                        TextMessage(text='broadcast: ' + str(response.broadcast)),
-                        TextMessage(text='targeting: ' + str(response.targeting)),
-                    ]
-                else:
-                    messages = [TextMessage(text='status: ' + response.status)]
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=messages
-                )
-            )
-        elif text == 'insight_followers':
-            with InsightClient(configuration) as api_client:
-                line_bot_insight_api = Insight(api_client)
-                today = datetime.date.today().strftime("%Y%m%d")
-                response = line_bot_insight_api.get_number_of_followers(var_date=today)
-            if response.status == 'ready':
-                messages = [
-                    TextMessage(text='followers: ' + str(response.followers)),
-                    TextMessage(text='targetedReaches: ' + str(response.targeted_reaches)),
-                    TextMessage(text='blocks: ' + str(response.blocks)),
-                ]
-            else:
-                messages = [TextMessage(text='status: ' + response.status)]
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=messages
-                )
-            )
-        elif text == 'insight_demographic':
-            with InsightClient(configuration) as api_client:
-                line_bot_insight_api = Insight(api_client)
-                response = line_bot_insight_api.get_friends_demographics()
-            if response.available:
-                messages = ["{gender}: {percentage}".format(gender=it.gender, percentage=it.percentage)
-                            for it in response.genders]
-            else:
-                messages = [TextMessage(text='available: false')]
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=messages
-                )
-            )
-        elif text == 'with http info':
-            response = line_bot_api.reply_message_with_http_info(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text='see application log')]
-                )
-            )
-            logger.info("Got response with http status code: " + str(response.status_code))
-            logger.info("Got x-line-request-id: " + response.headers['x-line-request-id'])
-            logger.info("Got response with http body: " + str(response.data))
-        elif text == 'with http info error':
-            try:
-                line_bot_api.reply_message_with_http_info(
-                    ReplyMessageRequest(
-                        reply_token='invalid-reply-token',
-                        messages=[TextMessage(text='see application log')]
-                    )
-                )
-            except ApiException as e:
-                logger.info("Got response with http status code: " + str(e.status))
-                logger.info("Got x-line-request-id: " + e.headers['x-line-request-id'])
-                logger.info("Got response with http body: " + str(ErrorResponse.from_json(e.body)))
+    
         else:
             line_bot_api.reply_message(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
-                    messages=[TextMessage(text=event.message.text)]
+                    messages=[TextMessage(text="Bot can't use profile API without user ID")]
                 )
             )
+    elif text == 'emojis':
+        emojis = [Emoji(index=0, product_id="5ac1bfd5040ab15980c9b435", emoji_id="001"),
+                  Emoji(index=13, product_id="5ac1bfd5040ab15980c9b435", emoji_id="002")]
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text='$ LINE emoji $', emojis=emojis)]
+            )
+        )
+    elif text == 'quota':
+        quota = line_bot_api.get_message_quota()
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[
+                    TextMessage(text='type: ' + quota.type),
+                    TextMessage(text='value: ' + str(quota.value))
+                ]
+            )
+        )
+    elif text == 'quota_consumption':
+        quota_consumption = line_bot_api.get_message_quota_consumption()
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[
+                    TextMessage(text='total usage: ' + str(quota_consumption.total_usage))
+                ]
+            )
+        )
+    elif text == 'push':
+        line_bot_api.push_message(
+            PushMessageRequest(
+                to=event.source.user_id,
+                messages=[TextMessage(text='PUSH!')]
+            )
+        )
+    elif text == 'multicast':
+        line_bot_api.multicast(
+            MulticastRequest(
+                to=[event.source.user_id],
+                messages=[TextMessage(text="THIS IS A MULTICAST MESSAGE, but it's slower than PUSH.")]
+            )
+        )
+    elif text == 'broadcast':
+        line_bot_api.broadcast(
+            BroadcastRequest(
+                messages=[TextMessage(text='THIS IS A BROADCAST MESSAGE')]
+            )
+        )
+    elif text.startswith('broadcast '):  # broadcast 20190505
+        date = text.split(' ')[1]
+        logger.info("Getting broadcast result: " + date)
+        result = line_bot_api.get_number_of_sent_broadcast_messages(var_date=date)
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[
+                    TextMessage(text='Number of sent broadcast messages: ' + date),
+                    TextMessage(text='status: ' + str(result.status)),
+                    TextMessage(text='success: ' + str(result.success)),
+                ]
+            )
+        )
+    elif text == 'bye':
+        if isinstance(event.source, GroupSource):
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text="Leaving group")]
+                )
+            )
+            line_bot_api.leave_group(event.source.group_id)
+        elif isinstance(event.source, RoomSource):
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text="Leaving room")]
+                )
+            )
+            line_bot_api.leave_room(room_id=event.source.room_id)
+        else:
+            line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        TextMessage(text="Bot can't leave from 1:1 chat")
+                    ]
+                )
+            )
+    elif text == 'confirm':
+        confirm_template = ConfirmTemplate(
+            text='Do it?',
+            actions=[
+                MessageAction(label='Yes', text='Yes!'),
+                MessageAction(label='No', text='No!')
+            ]
+        )
+        template_message = TemplateMessage(
+            alt_text='Confirm alt text',
+            template=confirm_template
+        )
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[template_message]
+            )
+        )
+    elif text == 'buttons':
+        buttons_template = ButtonsTemplate(
+            title='My buttons sample',
+            text='Hello, my buttons',
+            actions=[
+                URIAction(label='Go to line.me', uri='https://line.me'),
+                PostbackAction(label='ping', data='ping'),
+                PostbackAction(label='ping with text', data='ping', text='ping'),
+                MessageAction(label='Translate Rice', text='米')
+            ])
+        template_message = TemplateMessage(
+            alt_text='Buttons alt text',
+            template=buttons_template
+        )
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[template_message]
+            )
+        )
+    elif text == 'carousel':
+        carousel_template = CarouselTemplate(
+            columns=[
+                CarouselColumn(
+                    text='hoge1',
+                    title='fuga1',
+                    actions=[
+                        URIAction(label='Go to line.me', uri='https://line.me'),
+                        PostbackAction(label='ping', data='ping')
+                    ]
+                ),
+                CarouselColumn(
+                    text='hoge2',
+                    title='fuga2',
+                    actions=[
+                        PostbackAction(label='ping with text', data='ping', text='ping'),
+                        MessageAction(label='Translate Rice', text='米')
+                    ]
+                )
+            ]
+        )
+        template_message = TemplateMessage(
+            alt_text='Carousel alt text', template=carousel_template)
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[template_message]
+            )
+        )
+    elif text == 'image_carousel':
+        image_carousel_template = ImageCarouselTemplate(columns=[
+            ImageCarouselColumn(image_url='https://developers-resource.landpress.line.me/fx/clip/clip1.jpg',
+                                    action=DatetimePickerAction(label='datetime',
+                                                                data='datetime_postback',
+                                                                mode='datetime')),
+            ImageCarouselColumn(image_url='https://developers-resource.landpress.line.me/fx/clip/clip2.jpg',
+                                    action=DatetimePickerAction(label='date',
+                                                                data='date_postback',
+                                                                mode='date'))
+        ])
+        template_message = TemplateMessage(
+            alt_text='ImageCarousel alt text', template=image_carousel_template)
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[template_message]
+            )
+        )
+    elif text == 'flex':
+        start_icon_url = "https://developers-resource.landpress.line.me/fx/img/review_gold_star_28.png"
+        bubble = FlexBubble(
+            direction='ltr',
+            hero=FlexImage(
+                url='https://developers-resource.landpress.line.me/fx/img/01_1_cafe.png',
+                size='full',
+                aspect_ratio='20:13',
+                aspect_mode='cover',
+                action=URIAction(uri='http://example.com', label='label')
+            ),
+            body=FlexBox(
+                layout='vertical',
+                contents=[
+                    # title
+                    FlexText(text='Brown Cafe', weight='bold', size='xl'),
+                    # review
+                    FlexBox(
+                        layout='baseline',
+                        margin='md',
+                        contents=[
+                            FlexIcon(size='sm', url=start_icon_url),
+                            FlexIcon(size='sm', url=start_icon_url),
+                            FlexIcon(size='sm', url=start_icon_url),
+                            FlexIcon(size='sm', url=start_icon_url),
+                            FlexIcon(size='sm', url=start_icon_url),
+                            FlexText(text='4.0', size='sm', color='#999999', margin='md', flex=0)
+                        ]
+                    ),
+                    # info
+                    FlexBox(
+                        layout='vertical',
+                        margin='lg',
+                        spacing='sm',
+                        contents=[
+                            FlexBox(
+                                layout='baseline',
+                                spacing='sm',
+                                contents=[
+                                    FlexText(
+                                        text='Place',
+                                        color='#aaaaaa',
+                                        size='sm',
+                                        flex=1
+                                    ),
+                                    FlexText(
+                                        text='Shinjuku, Tokyo',
+                                        wrap=True,
+                                        color='#666666',
+                                        size='sm',
+                                        flex=5
+                                    )
+                                ],
+                            ),
+                            FlexBox(
+                                layout='baseline',
+                                spacing='sm',
+                                contents=[
+                                    FlexText(
+                                        text='Time',
+                                        color='#aaaaaa',
+                                        size='sm',
+                                        flex=1
+                                    ),
+                                    FlexText(
+                                        text="10:00 - 23:00",
+                                        wrap=True,
+                                        color='#666666',
+                                        size='sm',
+                                        flex=5,
+                                    ),
+                                ],
+                            ),
+                        ],
+                    )
+                ],
+            ),
+            footer=FlexBox(
+                layout='vertical',
+                spacing='sm',
+                contents=[
+                    # callAction
+                    FlexButton(
+                        style='link',
+                        height='sm',
+                        action=URIAction(label='CALL', uri='tel:000000'),
+                    ),
+                    # separator
+                    FlexSeparator(),
+                    # websiteAction
+                    FlexButton(
+                        style='link',
+                        height='sm',
+                        action=URIAction(label='WEBSITE', uri="https://example.com")
+                    )
+                ]
+            ),
+        )
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[FlexMessage(alt_text="hello", contents=bubble)]
+            )
+        )
+    elif text == 'flex_update_1':
+        with open('flex_msgs/flex_update_1.json') as bubble_json:           
+                bubble_string = bubble_json.read()
+
+        message = FlexMessage(alt_text="hello", contents=FlexContainer.from_json(bubble_string))
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[message]
+            )
+        )
+    elif text == 'quick_reply':
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(
+                    text='Quick reply',
+                    quick_reply=QuickReply(
+                        items=[
+                            QuickReplyItem(
+                                action=PostbackAction(label="label1", data="data1")
+                            ),
+                            QuickReplyItem(
+                                action=MessageAction(label="label2", text="text2")
+                            ),
+                            QuickReplyItem(
+                                action=DatetimePickerAction(label="label3",
+                                                            data="data3",
+                                                            mode="date")
+                            ),
+                            QuickReplyItem(
+                                action=CameraAction(label="label4")
+                            ),
+                            QuickReplyItem(
+                                action=CameraRollAction(label="label5")
+                            ),
+                            QuickReplyItem(
+                                action=LocationAction(label="label6")
+                            ),
+                        ]
+                    )
+                )]
+            )
+        )
+    elif text == 'link_token' and isinstance(event.source, UserSource):
+        link_token_response = line_bot_api.issue_link_token(user_id=event.source.user_id)
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text='link_token: ' + link_token_response.link_token)]
+            )
+        )
+    elif text == 'insight_message_delivery':
+        with InsightClient(configuration) as api_client:
+            line_bot_insight_api = Insight(api_client)
+            today = datetime.date.today().strftime("%Y%m%d")
+            response = line_bot_insight_api.get_number_of_message_deliveries(var_date=today)
+            if response.status == 'ready':
+                messages = [
+                    TextMessage(text='broadcast: ' + str(response.broadcast)),
+                    TextMessage(text='targeting: ' + str(response.targeting)),
+                ]
+            else:
+                messages = [TextMessage(text='status: ' + response.status)]
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=messages
+            )
+        )
+    elif text == 'insight_followers':
+        with InsightClient(configuration) as api_client:
+            line_bot_insight_api = Insight(api_client)
+            today = datetime.date.today().strftime("%Y%m%d")
+            response = line_bot_insight_api.get_number_of_followers(var_date=today)
+        if response.status == 'ready':
+            messages = [
+                TextMessage(text='followers: ' + str(response.followers)),
+                TextMessage(text='targetedReaches: ' + str(response.targeted_reaches)),
+                TextMessage(text='blocks: ' + str(response.blocks)),
+            ]
+        else:
+            messages = [TextMessage(text='status: ' + response.status)]
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=messages
+            )
+        )
+    elif text == 'insight_demographic':
+        with InsightClient(configuration) as api_client:
+            line_bot_insight_api = Insight(api_client)
+            response = line_bot_insight_api.get_friends_demographics()
+        if response.available:
+            messages = ["{gender}: {percentage}".format(gender=it.gender, percentage=it.percentage)
+                        for it in response.genders]
+        else:
+            messages = [TextMessage(text='available: false')]
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=messages
+            )
+        )
+    elif text == 'with http info':
+        response = line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text='see application log')]
+            )
+        )
+        logger.info("Got response with http status code: " + str(response.status_code))
+        logger.info("Got x-line-request-id: " + response.headers['x-line-request-id'])
+        logger.info("Got response with http body: " + str(response.data))
+    elif text == 'with http info error':
+        try:
+            line_bot_api.reply_message_with_http_info(
+                ReplyMessageRequest(
+                    reply_token='invalid-reply-token',
+                    messages=[TextMessage(text='see application log')]
+                )
+            )
+        except ApiException as e:
+            logger.info("Got response with http status code: " + str(e.status))
+            logger.info("Got x-line-request-id: " + e.headers['x-line-request-id'])
+            logger.info("Got response with http body: " + str(ErrorResponse.from_json(e.body)))
+    else:
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=event.message.text)]
+            )
+        )
 
 
 
 @handler.add(MessageEvent, message=StickerMessageContent)
 def handle_sticker_message(event):
+    line_bot_api.show_loading_animation_with_http_info(
+        ShowLoadingAnimationRequest(
+            chat_id=event.source.user_id
+        )
+    )
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         line_bot_api.reply_message(
@@ -620,6 +624,11 @@ def handle_sticker_message(event):
                                     VideoMessageContent,
                                     AudioMessageContent))
 def handle_content_message(event):
+    line_bot_api.show_loading_animation_with_http_info(
+        ShowLoadingAnimationRequest(
+            chat_id=event.source.user_id
+        )
+    )
     if isinstance(event.message, ImageMessageContent):
         ext = 'jpg'
     elif isinstance(event.message, VideoMessageContent):
@@ -631,7 +640,7 @@ def handle_content_message(event):
 
     with ApiClient(configuration) as api_client:
         line_bot_blob_api = MessagingApiBlob(api_client)
-        # message_content = line_bot_blob_api.get_message_content(message_id=event.message.id)
+        message_content = line_bot_blob_api.get_message_content(message_id=event.message.id)
 
 
 

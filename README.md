@@ -8,6 +8,25 @@
 
 ---
 
+### Folder Explaination 
+```md
+data-quality-with-apache-airflow/
+│
+├── README.md
+└── assets/
+└── flex_msgs/
+└── scripts/
+└── main.py
+```
+
+| Name | Description |
+| - | - |
+| `assets/` | โฟลเดอร์ที่เก็บ assets เช่นรูปภาพต่างๆ หรือ diagram
+| `flex_msgs/` | เก็บ flex message ในรูปแบบ json ไฟล์ |
+| `scripts/`| โฟลเดอร์ที่เก็บ scripts ต่างๆเช่น deploy หรือ run local |
+| `main.py`| ไฟล์หลักที่จัดการ event webhook และตอบกลับด้วย LINE Messaging API |
+
+
 ### STEP :  
 
 Simple Line Chatbot Demo with Python SDK and Google Cloud Run Function
