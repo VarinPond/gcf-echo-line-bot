@@ -38,7 +38,6 @@ from linebot.v3.webhooks import (
 )
 
 
-
 from linebot.v3.messaging import (
     Configuration,
     ApiClient,
@@ -103,6 +102,7 @@ handler = WebhookHandler(YOUR_CHANNEL_SECRET)
 # Initialize the Messaging API client once
 with ApiClient(configuration) as api_client:
     line_bot_api = MessagingApi(api_client)
+    line_bot_blob_api = MessagingApiBlob(api_client)
 
 @functions_framework.http
 def callback(request):
@@ -125,30 +125,9 @@ def callback(request):
 
 
 
-@handler.add(MessageEvent, message=LocationMessageContent)
-def handle_location_message(event):
-    line_bot_api.show_loading_animation_with_http_info(
-        ShowLoadingAnimationRequest(
-            chat_id=event.source.user_id
-        )
-        
-    )
-    line_bot_api.reply_message(
-        ReplyMessageRequest(
-            reply_token=event.reply_token,
-            messages=[LocationMessage(
-                title='Location',
-                address=event.message.address,
-                latitude=event.message.latitude,
-                longitude=event.message.longitude
-            )]
-        )
-    )
-
-
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_text_message(event):
-    line_bot_api.show_loading_animation_with_http_info(
+    line_bot_api.show_loading_animation(
         ShowLoadingAnimationRequest(
             chat_id=event.source.user_id
         )
@@ -156,7 +135,16 @@ def handle_text_message(event):
     
     text = event.message.text
     
-    if text == 'profile':
+    if text== 'beat':
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[
+                    TextMessage(text='Hello, My name is Beat, Hope you enjoy :)'),
+                ]
+            )
+        )   
+    elif text == 'profile':
         if isinstance(event.source, UserSource):
             profile = line_bot_api.get_profile(user_id=event.source.user_id)
             
@@ -183,6 +171,17 @@ def handle_text_message(event):
                     messages=[TextMessage(text="Bot can't use profile API without user ID")]
                 )
             )
+    elif text == 'sticker':
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[StickerMessage(
+                    package_id="446",
+                    sticker_id="1988")
+                ]
+            )
+        )
+        
     elif text == 'emojis':
         emojis = [Emoji(index=0, product_id="5ac1bfd5040ab15980c9b435", emoji_id="001"),
                   Emoji(index=13, product_id="5ac1bfd5040ab15980c9b435", emoji_id="002")]
@@ -606,20 +605,38 @@ def handle_sticker_message(event):
             chat_id=event.source.user_id
         )
     )
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[StickerMessage(
-                    package_id=event.message.package_id,
-                    sticker_id=event.message.sticker_id)
-                ]
-            )
+    line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[StickerMessage(
+                package_id=event.message.package_id,
+                sticker_id=event.message.sticker_id)
+            ]
         )
+    )
 
 
-# Other Message Type
+@handler.add(MessageEvent, message=LocationMessageContent)
+def handle_location_message(event):
+    line_bot_api.show_loading_animation_with_http_info(
+        ShowLoadingAnimationRequest(
+            chat_id=event.source.user_id
+        )
+        
+    )
+    line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[LocationMessage(
+                title='Location',
+                address=event.message.address,
+                latitude=event.message.latitude,
+                longitude=event.message.longitude
+            )]
+        )
+    )
+    
+    
 @handler.add(MessageEvent, message=(ImageMessageContent,
                                     VideoMessageContent,
                                     AudioMessageContent))
@@ -631,50 +648,52 @@ def handle_content_message(event):
     )
     if isinstance(event.message, ImageMessageContent):
         ext = 'jpg'
+        ftype = "image"
     elif isinstance(event.message, VideoMessageContent):
         ext = 'mp4'
+        ftype = "viedio"
     elif isinstance(event.message, AudioMessageContent):
         ext = 'm4a'
+        ftype = "audio"
     else:
         return
 
-    with ApiClient(configuration) as api_client:
-        line_bot_blob_api = MessagingApiBlob(api_client)
-        message_content = line_bot_blob_api.get_message_content(message_id=event.message.id)
+
+    message_content = line_bot_blob_api.get_message_content(message_id=event.message.id)
+    line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[
+                TextMessage(text=f'Thank for sending {ftype} file'),
+            ]
+        )
+    )
 
 
 
 
 @handler.add(MessageEvent, message=FileMessageContent)
 def handle_file_message(event):
-    with ApiClient(configuration) as api_client:
-        line_bot_blob_api = MessagingApiBlob(api_client)
-        message_content = line_bot_blob_api.get_message_content(message_id=event.message.id)
-
-
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[
-                    TextMessage(text='Send file.'),
-                ]
-            )
+    message_content = line_bot_blob_api.get_message_content(message_id=event.message.id)
+    line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[
+                TextMessage(text='Thank for sending the file.'),
+            ]
         )
+    )
 
 
 @handler.add(FollowEvent)
 def handle_follow(event):
     logger.info("Got Follow event:" + event.source.user_id)
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text='Got follow event')]
-            )
+    line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[TextMessage(text='Got follow event')]
         )
+    )
 
 
 @handler.add(UnfollowEvent)
@@ -684,14 +703,12 @@ def handle_unfollow(event):
 
 @handler.add(JoinEvent)
 def handle_join(event):
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text='Joined this ' + event.source.type)]
-            )
+    line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[TextMessage(text='Joined this ' + event.source.type)]
         )
+    )
 
 
 @handler.add(LeaveEvent)
@@ -701,54 +718,48 @@ def handle_leave():
 
 @handler.add(PostbackEvent)
 def handle_postback(event: PostbackEvent):
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        if event.postback.data == 'ping':
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text='pong')]
-                )
+    if event.postback.data == 'ping':
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text='pong')]
             )
-        elif event.postback.data == 'datetime_postback':
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text=event.postback.params['datetime'])]
-                )
+        )
+    elif event.postback.data == 'datetime_postback':
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=event.postback.params['datetime'])]
             )
-        elif event.postback.data == 'date_postback':
-            line_bot_api.reply_message(
-                ReplyMessageRequest(
-                    reply_token=event.reply_token,
-                    messages=[TextMessage(text=event.postback.params['date'])]
-                )
+        )
+    elif event.postback.data == 'date_postback':
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=event.postback.params['date'])]
             )
+        )
 
 
 @handler.add(BeaconEvent)
 def handle_beacon(event: BeaconEvent):
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text='Got beacon event. hwid={}, device_message(hex string)={}'.format(
-                    event.beacon.hwid, event.beacon.dm))]
-            )
+    line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[TextMessage(text='Got beacon event. hwid={}, device_message(hex string)={}'.format(
+                event.beacon.hwid, event.beacon.dm))]
         )
+    )
 
 
 @handler.add(MemberJoinedEvent)
 def handle_member_joined(event):
-    with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text='Got memberJoined event. event={}'.format(event))]
-            )
+    line_bot_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=event.reply_token,
+            messages=[TextMessage(text='Got memberJoined event. event={}'.format(event))]
         )
+    )
 
 
 @handler.add(MemberLeftEvent)
