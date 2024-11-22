@@ -1,2 +1,3 @@
 init.sh
 line_secret.yml
+*_key.json*
