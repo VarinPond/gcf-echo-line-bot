@@ -1,11 +1,6 @@
-import time
 import sys
 import os
 import linebot.v3.oauth
-from linebot.v3.oauth.models.channel_access_token_key_ids_response import (
-    ChannelAccessTokenKeyIdsResponse,
-)
-from linebot.v3.oauth.rest import ApiException
 from pprint import pprint
 
 # Defining the host is optional and defaults to https://api.line.me
@@ -16,7 +11,6 @@ configuration = linebot.v3.oauth.Configuration(host="https://api.line.me")
 outer_lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 sys.path.append(outer_lib_path)
 from commons.yaml_env import load_yaml_to_env
-
 load_yaml_to_env("scripts/line_secret.yml")
 
 # Enter a context with an instance of the API client

@@ -13,7 +13,6 @@ sys.path.append(outer_lib_path)
 from commons.yaml_env import load_yaml_to_env
 load_yaml_to_env("scripts/line_secret.yml")
 
-
 # Enter a context with an instance of the API client
 with linebot.v3.oauth.ApiClient(configuration) as api_client:
     # Create an instance of the API class
@@ -21,7 +20,7 @@ with linebot.v3.oauth.ApiClient(configuration) as api_client:
     access_token = os.getenv("SHORT_LIVE_CHANNEL_ACCESS_TOKEN") # str | A short-lived or long-lived channel access token.
 
     try:
-        api_response = api_instance.verify_channel_token(access_token)
+        api_response = api_instance.revoke_channel_token(access_token)
         print("The response of ChannelAccessToken->verify_channel_token:\n")
         pprint(api_response)
     except Exception as e:
