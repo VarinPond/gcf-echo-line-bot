@@ -1,3 +1,5 @@
 export PROJECT_ID=XXXXX
 export FUNCTION_NAME=line_webhook_handler
 export ENTRY_POINT=callback
+export CHANNEL_SECRET=XXXXX
+export CHANNEL_ACCESS_TOKEN=XXXXX
