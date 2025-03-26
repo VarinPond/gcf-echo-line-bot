@@ -79,16 +79,18 @@ from linebot.v3.messaging import (
 )
 
 from linebot.v3.insight import ApiClient as InsightClient, Insight
+from commons.yaml_env import load_yaml_to_env
 
+load_yaml_to_env("scripts/line_secret.yml")
 
-YOUR_CHANNEL_ACCESS_TOKEN = os.environ["YOUR_CHANNEL_ACCESS_TOKEN"]
-YOUR_CHANNEL_SECRET = os.environ["YOUR_CHANNEL_SECRET"]
+CHANNEL_ACCESS_TOKEN = os.environ["CHANNEL_ACCESS_TOKEN"]
+CHANNEL_SECRET = os.environ["CHANNEL_SECRET"]
 
 
 configuration = Configuration(
-    access_token=YOUR_CHANNEL_ACCESS_TOKEN,
+    access_token=CHANNEL_ACCESS_TOKEN,
 )
-handler = WebhookHandler(YOUR_CHANNEL_SECRET)
+handler = WebhookHandler(CHANNEL_SECRET)
 
 # Initialize the Messaging API client once
 with ApiClient(configuration) as api_client:
