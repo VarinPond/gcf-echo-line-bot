@@ -4,7 +4,7 @@ import datetime
 import logging as logger
 import tempfile
 import functions_framework
-
+import requests
 
 from linebot.v3 import WebhookHandler
 from linebot.v3.models import UnknownEvent
@@ -613,10 +613,23 @@ def handle_text_message(event):
                 "Got response with http body: " + str(ErrorResponse.from_json(e.body))
             )
     else:
+        # Your FastAPI server URL (update if not running locally or using a different port)
+        url = "https://c926-184-22-104-248.ngrok-free.app/chat"
+
+        # The message you want to send to the chatbot
+        params = {
+            "message": event.message.text
+        }
+
+        # Make the GET request
+        response = requests.get(url, params=params)
+
+        answer = response.json()["message"]
+            
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text=event.message.text)],
+                messages=[TextMessage(text=answer)],
             )
         )
 
