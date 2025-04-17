@@ -117,15 +117,17 @@ def callback(request):
 
     return "OK"
 
+user_sessions = {}  # สำหรับเก็บสถานะของแต่ละผู้ใช้
 
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_text_message(event):
     line_bot_api.show_loading_animation(
         ShowLoadingAnimationRequest(chat_id=event.source.user_id)
     )
-
+    
     text = event.message.text
-
+    user_id = event.source.user_id
+    
     if text == "beat":
         line_bot_api.reply_message(
             ReplyMessageRequest(
@@ -135,6 +137,78 @@ def handle_text_message(event):
                 ],
             )
         )
+    elif text == "my id":
+        line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        TextMessage(text=f"Hello, My name is Beat, your id:{user_id}"),
+                    ],
+                )
+            )
+    elif text == "คำนวณภาษีให้หน่อย":
+        user_sessions[user_id] = {"status":"wait_income","income":0}
+        line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        TextMessage(text=f"กรุณาระบุรายได้ต่อเดือนของคุณ (ตัวเลข):"),
+                    ],
+                )
+            )
+    elif user_sessions[user_id]["status"] == 'wait_income' and text == "ไม่มี":
+        user_sessions[user_id]["status"] = 'ask_deductions'
+        income = user_sessions[user_id]["income"]
+        if "reduce" in user_sessions[user_id].key():
+            deduction = user_sessions[user_id]["reduce"]
+        else:
+            deduction = 0
+        total = income - deduction
+        line_bot_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[
+                        TextMessage(text=f"ภาษีที่ต้องจ่ายคือ {total}"),
+                    ],
+                )
+            )
+        pass
+    elif user_sessions[user_id]["status"] == 'wait_income':
+        income = float(text.replace(",",''))
+        user_sessions[user_id]["income"] = income*12
+        
+        carousel_template = ImageCarouselTemplate(
+            columns=[
+                ImageCarouselColumn(
+                    title="ประกันชีวิต",
+                    image_url="https://developers-resource.landpress.line.me/fx/clip/clip1.jpg",
+                    action=PostbackAction(label="ใช่ ฉันมี", data="ประกันชีวิต")
+                ),
+                ImageCarouselColumn(
+                    title="กองทุน SSF",
+                    image_url="https://developers-resource.landpress.line.me/fx/clip/clip1.jpg",
+                    action=PostbackAction(label="ใช่ ฉันมี", data="กองทุน SSF")
+                ),
+                ImageCarouselColumn(
+                    title="กองทุน RMF",
+                    image_url="https://developers-resource.landpress.line.me/fx/clip/clip1.jpg",
+                    action=PostbackAction(label="ใช่ ฉันมี", data="กองทุน RMF")
+                )
+            ]
+        )
+        
+        
+        template_message = TemplateMessage(
+            alt_text="Carousel alt text", template=carousel_template
+        )
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token, messages=[
+                    TextMessage(text=f"รายได้ต่อปีของคุณ :{income*12}"),
+                    template_message]
+            )
+        )  
+
     elif text == "profile":
         if isinstance(event.source, UserSource):
             profile = line_bot_api.get_profile(user_id=event.source.user_id)
@@ -749,26 +823,64 @@ def handle_leave():
 
 @handler.add(PostbackEvent)
 def handle_postback(event: PostbackEvent):
-    if event.postback.data == "ping":
+    data = event.postback.data
+    if data == "ping":
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token, messages=[TextMessage(text="pong")]
             )
         )
-    elif event.postback.data == "datetime_postback":
+    elif data == "ประกันชีวิต":
+        # if "reduce" not in user_sessions[user_id].key():
+        #     user_sessions[user_id]["reduce"] = 100000
+        # else:
+        #     user_sessions[user_id]["reduce"] += 100000
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 100,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
+            )
+        )
+    elif data == "กองทุน RMF":
+        # if "reduce" not in user_sessions[user_id].key():
+        #     user_sessions[user_id]["reduce"] = 200000
+        # else:
+        #     user_sessions[user_id]["reduce"] += 200000
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 200,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
+            )
+        )
+    elif data == "กองทุน SSF":
+        # if "reduce" not in user_sessions[user_id].key():
+        #     user_sessions[user_id]["reduce"] = 150000
+        # else:
+        #     user_sessions[user_id]["reduce"] += 150000
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 150,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
+            )
+        )
+    elif data == "datetime_postback":
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
                 messages=[TextMessage(text=event.postback.params["datetime"])],
             )
         )
-    elif event.postback.data == "date_postback":
+    elif data == "date_postback":
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
                 messages=[TextMessage(text=event.postback.params["date"])],
             )
         )
+    else:
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token, messages=[TextMessage(text="ข้อความ\nuser:{user_id}\ndata:{data}")]
+            )
+        )
+        
 
 
 @handler.add(BeaconEvent)
