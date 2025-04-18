@@ -181,8 +181,8 @@ def handle_text_message(event):
                     title="กองทุน",
                     thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/fund.png",
                     actions=[
-                        PostbackAction(label="กองทุน SSF", data="กองทุน SSF"),
-                        PostbackAction(label="กองทุน RMF", data="กองทุน RMF"),
+                        PostbackAction(label="กองทุน SSF", data=f"กองทุน SSFXxX{user_id}"),
+                        PostbackAction(label="กองทุน RMF", data=f"กองทุน RMFXxX{user_id}"),
                     ],
                 ),
                 CarouselColumn(
@@ -190,7 +190,7 @@ def handle_text_message(event):
                     title="ประกันสังคม",
                     thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/work.png",
                     actions=[
-                        PostbackAction(label="ใช่ ฉันมี", data="ประกันสังคม"),
+                        PostbackAction(label="ใช่ ฉันมี", data=f"ประกันสังคมXxX{user_id}"),
                         PostbackAction(label="ศึกษาเพิ่มเติม", data="ศึกษาเพิ่มเติม ประกันสังคม"),
                     ],
                 ),
@@ -199,7 +199,7 @@ def handle_text_message(event):
                     title="ประกันชีวิต",
                     thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/life.png",
                     actions=[
-                        PostbackAction(label="ใช่ ฉันมี", data="ประกันชีวิต"),
+                        PostbackAction(label="ใช่ ฉันมี", data=f"ประกันชีวิตXxX{user_id}"),
                         PostbackAction(label="ศึกษาเพิ่มเติม", data="ศึกษาเพิ่มเติม ประกันชีวิต"),
                     ],
                 ),
@@ -208,7 +208,7 @@ def handle_text_message(event):
                     title="บริจาคทั่วไป",
                     thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/donate.png",
                     actions=[
-                        PostbackAction(label="ใช่ ฉันมี", data="บริจาคทั่วไป"),
+                        PostbackAction(label="ใช่ ฉันมี", data=f"บริจาคทั่วไปXxX{user_id}"),
                         PostbackAction(label="ศึกษาเพิ่มเติม", data="ศึกษาเพิ่มเติม บริจาคทั่วไป"),
                     ],
                 ),
@@ -841,7 +841,8 @@ def handle_leave():
 
 @handler.add(PostbackEvent)
 def handle_postback(event: PostbackEvent):
-    data = event.postback.data
+    raw_data = event.postback.data
+    data, user_id = raw_data.split("XxX")
     if data == "ping":
         line_bot_api.reply_message(
             ReplyMessageRequest(
@@ -849,50 +850,35 @@ def handle_postback(event: PostbackEvent):
             )
         )
     elif data == "ประกันชีวิต":
-        # if "reduce" not in user_sessions[user_id].key():
-        #     user_sessions[user_id]["reduce"] = 100000
-        # else:
-        #     user_sessions[user_id]["reduce"] += 100000
+        user_sessions[user_id]["reduce"] += 100000
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 100,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
             )
         )
     elif data == "กองทุน RMF":
-        # if "reduce" not in user_sessions[user_id].key():
-        #     user_sessions[user_id]["reduce"] = 200000
-        # else:
-        #     user_sessions[user_id]["reduce"] += 200000
+        user_sessions[user_id]["reduce"] += 200000
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 200,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
             )
         )
     elif data == "กองทุน SSF":
-        # if "reduce" not in user_sessions[user_id].key():
-        #     user_sessions[user_id]["reduce"] = 150000
-        # else:
-        #     user_sessions[user_id]["reduce"] += 150000
+        user_sessions[user_id]["reduce"] += 150000
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 150,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
             )
         )
     elif data == "ประกันสังคม":
-        # if "reduce" not in user_sessions[user_id].key():
-        #     user_sessions[user_id]["reduce"] = 150000
-        # else:
-        #     user_sessions[user_id]["reduce"] += 150000
+        user_sessions[user_id]["reduce"] += 15000
         line_bot_api.reply_message(
             ReplyMessageRequest(
-                reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 150,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
+                reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 15,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
             )
         )
     elif data == "บริจาคทั่วไป":
-        # if "reduce" not in user_sessions[user_id].key():
-        #     user_sessions[user_id]["reduce"] = 150000
-        # else:
-        #     user_sessions[user_id]["reduce"] += 150000
+        user_sessions[user_id]["reduce"] += 10000
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 10,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
