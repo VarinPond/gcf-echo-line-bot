@@ -176,23 +176,58 @@ def handle_text_message(event):
         income = float(text.replace(",",''))
         user_sessions[user_id]["income"] = income*12
         
-        carousel_template = ImageCarouselTemplate(
+        carousel_template = CarouselTemplate(
             columns=[
-                ImageCarouselColumn(
+                # ImageCarouselColumn(
+                #     title="ประกันชีวิต",
+                #     image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/life_insurance.png",
+                #     action=PostbackAction(label="ใช่ ฉันมี", data="ประกันชีวิต")
+                # ),
+                # ImageCarouselColumn(
+                #     title="กองทุน",
+                #     image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/fund.jpeg",
+                #     action=[PostbackAction(label="กองทุน SSF", data="กองทุน SSF"),
+                #             PostbackAction(label="กองทุน RMF", data="กองทุน RMF")]
+                # ),
+                # ImageCarouselColumn(
+                #     title="ประกันสังคม",
+                #     image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/work_insurance.png",
+                #     action=PostbackAction(label="ใช่ ฉันมี", data="ประกันสังคม")
+                # ),
+                # ImageCarouselColumn(
+                #     title="บริจาคทั่วไป",
+                #     image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/donate.png",
+                #     action=PostbackAction(label="ใช่ ฉันมี", data="บริจาคทั่วไป")
+                # ),
+                CarouselColumn(
+                    text="เลือกกองทุน",
+                    title="กองทุน",
+                    thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/fund.png",
+                    actions=[
+                        PostbackAction(label="กองทุน SSF", data="กองทุน SSF"),
+                        PostbackAction(label="กองทุน RMF", data="กองทุน RMF"),
+                    ],
+                ),
+                CarouselColumn(
+                    text="",
+                    title="ประกันสังคม",
+                    thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/work.png",
+                    actions=PostbackAction(label="ใช่ ฉันมี", data="ประกันสังคม"),
+                ),
+                CarouselColumn(
+                    text="",
                     title="ประกันชีวิต",
-                    image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/life_insurance.jpeg",
-                    action=PostbackAction(label="ใช่ ฉันมี", data="ประกันชีวิต")
+                    thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/life.png",
+                    actions=PostbackAction(label="ใช่ ฉันมี", data="ประกันชีวิต"),
                 ),
-                ImageCarouselColumn(
-                    title="กองทุน SSF",
-                    image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/image_co2.jpeg",
-                    action=PostbackAction(label="ใช่ ฉันมี", data="กองทุน SSF")
+                CarouselColumn(
+                    text="",
+                    title="บริจาคทั่วไป",
+                    thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/donate.png",
+                    actions=[
+                        PostbackAction(label="ใช่ ฉันบริจาค", data="บริจาคทั่วไป"),
+                    ],
                 ),
-                ImageCarouselColumn(
-                    title="กองทุน RMF",
-                    image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/image_co3.jpeg",
-                    action=PostbackAction(label="ใช่ ฉันมี", data="กองทุน RMF")
-                )
             ]
         )
         
@@ -857,6 +892,26 @@ def handle_postback(event: PostbackEvent):
         line_bot_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 150,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
+            )
+        )
+    elif data == "ประกันสังคม":
+        # if "reduce" not in user_sessions[user_id].key():
+        #     user_sessions[user_id]["reduce"] = 150000
+        # else:
+        #     user_sessions[user_id]["reduce"] += 150000
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 150,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
+            )
+        )
+    elif data == "บริจาคทั่วไป":
+        # if "reduce" not in user_sessions[user_id].key():
+        #     user_sessions[user_id]["reduce"] = 150000
+        # else:
+        #     user_sessions[user_id]["reduce"] += 150000
+        line_bot_api.reply_message(
+            ReplyMessageRequest(
+                reply_token=event.reply_token, messages=[TextMessage(text='ลดหย่อนได้ 10,000 บาท\nหากไม่มีการลดหย่อนเพิ่มเติมแล้วพิม "ไม่มี"')]
             )
         )
     elif data == "datetime_postback":
