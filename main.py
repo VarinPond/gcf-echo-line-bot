@@ -180,7 +180,7 @@ def handle_text_message(event):
             columns=[
                 ImageCarouselColumn(
                     title="ประกันชีวิต",
-                    image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/image_co1.jpeg",
+                    image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/life_insurance.jpeg",
                     action=PostbackAction(label="ใช่ ฉันมี", data="ประกันชีวิต")
                 ),
                 ImageCarouselColumn(
