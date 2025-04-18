@@ -159,10 +159,10 @@ def handle_text_message(event):
     elif user_sessions[user_id]["status"] == 'wait_income' and text == "ไม่มี":
         user_sessions[user_id]["status"] = 'ask_deductions'
         income = user_sessions[user_id]["income"]
-        if "reduce" in user_sessions[user_id].key():
-            deduction = user_sessions[user_id]["reduce"]
-        else:
-            deduction = 0
+        # if "reduce" in user_sessions[user_id].key():
+        #     deduction = user_sessions[user_id]["reduce"]
+        # else:
+        deduction = 0
         total = income - deduction
         line_bot_api.reply_message(
                 ReplyMessageRequest(
@@ -172,7 +172,6 @@ def handle_text_message(event):
                     ],
                 )
             )
-        pass
     elif user_sessions[user_id]["status"] == 'wait_income':
         income = float(text.replace(",",''))
         user_sessions[user_id]["income"] = income*12
@@ -181,17 +180,17 @@ def handle_text_message(event):
             columns=[
                 ImageCarouselColumn(
                     title="ประกันชีวิต",
-                    image_url="https://developers-resource.landpress.line.me/fx/clip/clip1.jpg",
+                    image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/image_co1.jpeg",
                     action=PostbackAction(label="ใช่ ฉันมี", data="ประกันชีวิต")
                 ),
                 ImageCarouselColumn(
                     title="กองทุน SSF",
-                    image_url="https://developers-resource.landpress.line.me/fx/clip/clip1.jpg",
+                    image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/image_co2.jpeg",
                     action=PostbackAction(label="ใช่ ฉันมี", data="กองทุน SSF")
                 ),
                 ImageCarouselColumn(
                     title="กองทุน RMF",
-                    image_url="https://developers-resource.landpress.line.me/fx/clip/clip1.jpg",
+                    image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/image_co3.jpeg",
                     action=PostbackAction(label="ใช่ ฉันมี", data="กองทุน RMF")
                 )
             ]
