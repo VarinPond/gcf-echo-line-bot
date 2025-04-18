@@ -147,7 +147,7 @@ def handle_text_message(event):
                 )
             )
     elif text == "คำนวณภาษีให้หน่อย":
-        user_sessions[user_id] = {"status":"wait_income","income":0}
+        user_sessions[user_id] = {"status":"wait_income","income":0,"reduce":0}
         line_bot_api.reply_message(
                 ReplyMessageRequest(
                     reply_token=event.reply_token,
@@ -159,10 +159,8 @@ def handle_text_message(event):
     elif user_sessions[user_id]["status"] == 'wait_income' and text == "ไม่มี":
         user_sessions[user_id]["status"] = 'ask_deductions'
         income = user_sessions[user_id]["income"]
-        # if "reduce" in user_sessions[user_id].key():
-        #     deduction = user_sessions[user_id]["reduce"]
-        # else:
-        deduction = 0
+        deduction = user_sessions[user_id]["reduce"]
+        
         total = income - deduction
         line_bot_api.reply_message(
                 ReplyMessageRequest(
@@ -178,27 +176,6 @@ def handle_text_message(event):
         
         carousel_template = CarouselTemplate(
             columns=[
-                # ImageCarouselColumn(
-                #     title="ประกันชีวิต",
-                #     image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/life_insurance.png",
-                #     action=PostbackAction(label="ใช่ ฉันมี", data="ประกันชีวิต")
-                # ),
-                # ImageCarouselColumn(
-                #     title="กองทุน",
-                #     image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/fund.jpeg",
-                #     action=[PostbackAction(label="กองทุน SSF", data="กองทุน SSF"),
-                #             PostbackAction(label="กองทุน RMF", data="กองทุน RMF")]
-                # ),
-                # ImageCarouselColumn(
-                #     title="ประกันสังคม",
-                #     image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/work_insurance.png",
-                #     action=PostbackAction(label="ใช่ ฉันมี", data="ประกันสังคม")
-                # ),
-                # ImageCarouselColumn(
-                #     title="บริจาคทั่วไป",
-                #     image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/donate.png",
-                #     action=PostbackAction(label="ใช่ ฉันมี", data="บริจาคทั่วไป")
-                # ),
                 CarouselColumn(
                     text="เลือกกองทุน",
                     title="กองทุน",
@@ -209,23 +186,30 @@ def handle_text_message(event):
                     ],
                 ),
                 CarouselColumn(
-                    text="",
+                    text=" ",
                     title="ประกันสังคม",
                     thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/work.png",
-                    actions=PostbackAction(label="ใช่ ฉันมี", data="ประกันสังคม"),
+                    actions=[
+                        PostbackAction(label="ใช่ ฉันมี", data="ประกันสังคม"),
+                        PostbackAction(label="ศึกษาเพิ่มเติม", data="ศึกษาเพิ่มเติม ประกันสังคม"),
+                    ],
                 ),
                 CarouselColumn(
-                    text="",
+                    text=" ",
                     title="ประกันชีวิต",
                     thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/life.png",
-                    actions=PostbackAction(label="ใช่ ฉันมี", data="ประกันชีวิต"),
+                    actions=[
+                        PostbackAction(label="ใช่ ฉันมี", data="ประกันชีวิต"),
+                        PostbackAction(label="ศึกษาเพิ่มเติม", data="ศึกษาเพิ่มเติม ประกันชีวิต"),
+                    ],
                 ),
                 CarouselColumn(
-                    text="",
+                    text=" ",
                     title="บริจาคทั่วไป",
                     thumbnail_image_url="https://raw.githubusercontent.com/VarinPond/gcf-echo-line-bot/refs/heads/main/assets/donate.png",
                     actions=[
-                        PostbackAction(label="ใช่ ฉันบริจาค", data="บริจาคทั่วไป"),
+                        PostbackAction(label="ใช่ ฉันมี", data="บริจาคทั่วไป"),
+                        PostbackAction(label="ศึกษาเพิ่มเติม", data="ศึกษาเพิ่มเติม บริจาคทั่วไป"),
                     ],
                 ),
             ]
